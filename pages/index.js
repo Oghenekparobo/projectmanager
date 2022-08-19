@@ -32,7 +32,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-gray-400 to-gray-400 mix-blend-multiply"></div>
 
         {/* the  border around the body  also has a clip path*/}
-        <div className=" md:absolute md:inset-0 md:border-4 md:border-white md:m-4 "></div>
+        <div className="b-clip md:absolute md:inset-0 md:border-4 md:border-white md:m-4 "></div>
 
         {/* header text contents */}
         <div className="">
