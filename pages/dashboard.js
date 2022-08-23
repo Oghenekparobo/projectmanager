@@ -1,7 +1,12 @@
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { getSession, useSession } from "next-auth/react";
+import { useState } from "react";
+import { getProjects } from "lib/data";
+import prisma from "lib/prisma";
+import NewTodo from "./components/NewTodo";
 
-export default function Home() {
+export default function Home({ projects }) {
+  const [name, setName] = useState("");
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -14,8 +19,8 @@ export default function Home() {
     return;
   }
 
-  if(!session.user.isSubscriber){
-    router.push('/subscribe');
+  if (!session.user.isSubscriber) {
+    router.push("/subscribe");
     return;
   }
 
@@ -25,33 +30,77 @@ export default function Home() {
         <h1 className="text-white pt-20 text-3xl text-center">Projects</h1>
 
         <div className="project-wrapper px-20 text-white md:grid md:grid-cols-4 my-20 ">
-
-        <div className="project-1 flex flex-col items-center">
-            <h1 className="text-2xl font-bold py-1  border-b border-gray-500">Project #1</h1>
-            <div className="project-1__todos py-4">
-              <ol className="list-disc text-xl">
-                <li>todo 1</li>
-                <li>todo 2</li>
-                <li>todo 3</li>
-              </ol>
-            </div>
-          </div>
-
-          <div className="project-2 flex flex-col items-center">
-            <h1 className="text-2xl font-bold py-1 border-b border-gray-500">Project #2</h1>
-            <div className="project-2__todos py-4">
-              <ol className="list-disc text-xl">
-                <li>todo 1</li>
-                <li>todo 2</li>
-                <li>todo 3</li>
-              </ol>
-            </div>
-          </div>
-
+          {projects.map((project) => (
+            <>
+              <div className=" flex flex-col items-center" key={project.id}>
+                <h1 className="text-2xl font-bold py-1  border-b border-gray-500">
+                  {project.name}
+                </h1>
+                <NewTodo project_id={project.id} />
+                <div className=" py-4">
+                  <ol className="list-disc text-xl">
+                    {project.todos.map((todo) => (
+                      <li key={todo.id}>
+                        <span>⬜️</span> {todo.name}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            </>
+          ))}
         </div>
 
-        
+        <div className="form-wrapper">
+          <form
+            className="mt-10 flex flex-row justify-center"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              await fetch("/api/project", {
+                body: JSON.stringify({
+                  name,
+                }),
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                method: "POST",
+              });
+
+              router.reload();
+            }}
+          >
+            <input
+              onChange={(e) => setName(e.target.value)}
+              className="border p-1 text-black outline-none"
+              required
+              placeholder="New project"
+            />
+
+            <button
+              disabled={name ? false : true}
+              className={`border px-8 py-2 font-bold transition-all ${
+                name
+                  ? "bg-black text-white border-none"
+                  : "cursor-not-allowed text-gray-400 border-gray-400"
+              }`}
+            >
+              Add
+            </button>
+          </form>
+        </div>
       </section>
     </div>
   );
+}
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
+  let projects = await getProjects(prisma, session?.user.id);
+  projects = JSON.parse(JSON.stringify(projects));
+
+  return {
+    props: {
+      projects,
+    },
+  };
 }

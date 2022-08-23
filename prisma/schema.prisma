@@ -20,8 +20,26 @@ model User {
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
   sessions      Session[]
+  projects       Project[]
 	isSubscriber  Boolean   @default(false)	
 	stripeSubscriptionId String?
+}
+
+model Project {
+  id    Int    @id @default(autoincrement())
+  name  String
+  todos Todo[]
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+}
+
+model Todo {
+  id        Int     @id @default(autoincrement())
+  name      String
+  done      Boolean @default(false)
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
