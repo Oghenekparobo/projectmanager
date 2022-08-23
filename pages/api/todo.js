@@ -2,7 +2,6 @@ import prisma from "lib/prisma";
 import { getSession } from "next-auth/react";
 
 export default async function handler(req, res) {
-
   const session = await getSession({ req });
   if (!session) return res.status(401).json({ message: "user not logged in" });
 
@@ -20,6 +19,19 @@ export default async function handler(req, res) {
         name: req.body.name,
         project: {
           connect: { id: req.body.project_id },
+        },
+      },
+    });
+  }
+
+  if (req.method === "DELETE") {
+    await prisma.todo.deleteMany({
+      where: {
+        id: req.body.id,
+        project: {
+          owner: {
+            id: user.id,
+          },
         },
       },
     });

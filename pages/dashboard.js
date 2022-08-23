@@ -35,13 +35,71 @@ export default function Home({ projects }) {
               <div className=" flex flex-col items-center" key={project.id}>
                 <h1 className="text-2xl font-bold py-1  border-b border-gray-500">
                   {project.name}
+                  <span
+                    className="cursor-pointer"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      await fetch("/api/project", {
+                        body: JSON.stringify({
+                          id: project.id,
+                        }),
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        method: "DELETE",
+                      });
+
+                      router.reload();
+                    }}
+                  >
+                    🗑
+                  </span>
                 </h1>
                 <NewTodo project_id={project.id} />
                 <div className=" py-4">
                   <ol className="list-disc text-xl">
                     {project.todos.map((todo) => (
                       <li key={todo.id}>
-                        <span>⬜️</span> {todo.name}
+                        <span
+                          className="cursor-pointer"
+                          onClick={async () => {
+                            await fetch("/api/complete", {
+                              body: JSON.stringify({
+                                id: todo.id,
+                              }),
+                              headers: {
+                                "Content-Type": "application/json",
+                              },
+                              method: "POST",
+                            });
+
+                            router.reload();
+                          }}
+                        >
+                          {todo.done ? "✅" : "⬜️"}
+                        </span>{" "}
+                        <span className={`${todo.done ? "line-through" : ""}`}>
+                          {todo.name}
+                          <span
+                            className="cursor-pointer"
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              await fetch("/api/todo", {
+                                body: JSON.stringify({
+                                  id: todo.id,
+                                }),
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                method: "DELETE",
+                              });
+
+                              router.reload();
+                            }}
+                          >
+                            🗑
+                          </span>
+                        </span>
                       </li>
                     ))}
                   </ol>
@@ -87,6 +145,21 @@ export default function Home({ projects }) {
               Add
             </button>
           </form>
+        </div>
+        <div className="cancel-sub text-white">
+          <p
+            className="text-center text-xs mt-20 hover:underline cursor-pointer"
+            onClick={async (e) => {
+              e.preventDefault();
+              await fetch("/api/cancel", {
+                method: "POST",
+              });
+
+              router.reload();
+            }}
+          >
+            cancel your subscription
+          </p>
         </div>
       </section>
     </div>
